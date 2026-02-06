@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  Flour_mach2
+//  Flour
 //
-//  Created by Alec Erb on 2/5/26.
+//  Created on 2026-02-06.
 //
 
 import SwiftUI
@@ -13,7 +13,12 @@ struct ContentView: View {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("Flour")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            Text("Hyperlocal Marketplace")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         .padding()
     }

@@ -153,14 +153,14 @@ School {
 - [ ] Set up .gitignore (API keys, secrets)
 - [ ] Create development environment config file
 
-## Phase 2: Core Data Models
-- [ ] Define User model
-- [ ] Define Request model with urgency enumdsa
-- [ ] Define Offer model for negotiation
-- [ ] Define Transaction model
-- [ ] Define Message model
-- [ ] Define School model
-- [ ] Create mock data for testing/previews
+## Phase 2: Core Data Models ✓
+- [x] Define User model
+- [x] Define Request model with urgency enum
+- [x] Define Offer model for negotiation
+- [x] Define Transaction model
+- [x] Define Message model
+- [x] Define School model
+- [x] Create mock data for testing/previews
 
 ## Phase 3: Authentication & Onboarding
 - [ ] Set up Firebase Authentication
