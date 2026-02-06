@@ -5,14 +5,23 @@
 **Flour** is a hyperlocal, real-time marketplace iOS app for immediate needs, targeting college campuses (initially Greek life communities). Users can request items from nearby people, offer prices, and complete exchanges in person within a ~10 minute walk radius.
 
 **Tech Stack:**
-- **Platform:** iOS (SwiftUI)
-- **Maps:** MapKit
-- **Payments:** Stripe Connect
-- **Real-time Chat:** Firebase Realtime DB or WebSocket
-- **Auth:** Firebase Auth or custom
-- **Push Notifications:** APNs
-- **Backend:** TBD (Node.js, Python/FastAPI, or serverless)
-- **Database:** PostgreSQL or Firebase Firestore
+- **Platform:** iOS only (SwiftUI, iOS 17+)
+- **IDE:** Xcode 26.2 beta
+- **State:** `@Observable` with environment injection (`AppState`)
+- **Maps:** MapKit + CoreLocation
+- **Backend:** Mock (in-memory via `AppState`) — no network calls yet
+- **Future:** Firebase Auth, Stripe Connect, APNs, real backend TBD
+
+**Build Settings:**
+- `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` (Swift 6 strict concurrency)
+- `SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"` (iOS only)
+- `TARGETED_DEVICE_FAMILY = "1,2"` (iPhone + iPad)
+- Manual `Info.plist` with `GENERATE_INFOPLIST_FILE = NO`
+- xcode-select points to CommandLineTools; use `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` for CLI builds
+
+**File Organization:** Flat naming convention — all Swift files at project root:
+- `ViewsFeedView.swift`, `ServicesAppState.swift`, `ModelsUser.swift`, etc.
+- No subdirectories; PBX references are manual entries in `project.pbxproj`
 
 ## Key Concepts
 
@@ -47,75 +56,50 @@
 - Requests expire after configurable duration (default: 2 hours)
 - Status flow: open → negotiating → matched → completed/cancelled/expired
 
-## Core Data Models
+## Architecture
 
-```swift
-User {
-    id, display_name, email (.edu), phone, school_id, created_at, rating
-}
+- **State:** Single `AppState` (@Observable) injected via `.environment()`
+- **Services:** `LocationService` for real CoreLocation; all other services mocked in AppState
+- **Navigation:** TabView (Feed, Map, Activity, Profile) + sheet for Create Request
+- **Data:** All initialized from `MockData` — no network calls
 
-Request {
-    id, requester_id, item_description, offer_price, urgency (asap/30min/1hour/flexible),
-    radius_meters, location (lat/lng), status (open/negotiating/matched/completed/cancelled/expired),
-    fulfiller_id (nullable), created_at, expires_at, duration_hours (default: 2)
-}
+## Project Structure
 
-Offer {
-    id, request_id, user_id, amount, status (pending/accepted/declined/countered),
-    parent_offer_id (nullable), created_at
-}
-
-Transaction {
-    id, request_id, requester_id, fulfiller_id, item_price, platform_fee, total_charged,
-    status (pending/completed/disputed/refunded), requester_confirmed, fulfiller_confirmed,
-    completed_at
-}
-
-Message {
-    id, transaction_id, sender_id, content, created_at, read
-}
-
-School {
-    id, name, domain
-}
 ```
-
-## MVP Screen Inventory
-
-1. **Onboarding:** Email verification → School selection → Phone verification → Display name
-2. **Home (Map View):** Map centered on user, "New Request" button, toggle to Feed
-3. **Feed View:** List of nearby open requests, active transactions
-4. **Create Request:** Item description, price, urgency, radius, duration, post
-5. **Request Detail (Requester):** Request info, incoming responses, accept/decline, chat after match
-6. **Request Detail (Fulfiller):** Item details, accept/counter/ignore, chat after match
-7. **Chat Screen:** Messaging interface, "Mark Complete" button
-8. **Profile:** Display name, school, transaction history, settings, logout
-
-## MVP Checklist
-
-### Must-Have Features
-- [ ] Map view with request creation
-- [ ] Push notifications to nearby users
-- [ ] Accept/decline/counter flow
-- [ ] In-app chat (unlocks after match)
-- [ ] In-app payment processing (Stripe)
-- [ ] Basic profile (display name, school)
-- [ ] Phone + .edu email verification
-- [ ] "Complete" confirmation from both parties
-- [ ] Simple feed of nearby requests
-
-### Post-MVP (Deferred)
-- Category-based notification preferences
-- Ratings and reviews
-- Dispute resolution flow
-- Content moderation system
-- Advanced notification targeting
-- Quiet hours
-
-## Content Policy
-- Alcohol and prohibited items: Banned in ToS
-- MVP: No active moderation (revisit post-launch)
-- Future: Keyword filtering, user reporting, manual review
+Flour_mach2/
+├── FlourApp.swift                          # App entry point
+├── ServicesAppState.swift                  # Central @Observable state container
+├── ServicesLocationService.swift           # CoreLocation wrapper
+├── ViewsRootView.swift                    # Routes onboarding vs main app
+├── ViewsOnboardingWelcomeView.swift       # Welcome screen
+├── ViewsOnboardingEmailView.swift         # .edu email entry
+├── ViewsOnboardingProfileSetupView.swift  # Profile creation
+├── ViewsMainTabView.swift                 # 4-tab layout + create button
+├── ViewsFeedView.swift                    # Nearby requests list
+├── ViewsMapView.swift                     # MapKit with request pins
+├── ViewsActivityView.swift                # My requests + transactions
+├── ViewsCreateRequestView.swift           # New request form
+├── ViewsRequestDetailView.swift           # Request info + actions
+├── ViewsOfferSheet.swift                  # Make/counter offer
+├── ViewsNegotiationHistoryView.swift      # Offer chain display
+├── ViewsChatView.swift                    # Message bubbles + input
+├── ViewsChatListView.swift                # Active conversations
+├── ViewsCompletionView.swift              # Dual confirmation
+├── ViewsProfileView.swift                 # User info + stats
+├── ViewsSettingsView.swift                # Notification/payment toggles
+├── ViewsTransactionHistoryView.swift      # Past transactions
+├── SharedRequestCard.swift                # Reusable request card
+├── SharedFeeBreakdownView.swift           # Price/fee/total display
+├── ModelsUser.swift                       # User model
+├── ModelsSchool.swift                     # School model
+├── ModelsRequest.swift                    # Request + Urgency + Location
+├── ModelsOffer.swift                      # Offer + counter-offer
+├── ModelsTransaction.swift                # Transaction + fee calc
+├── ModelsMessage.swift                    # Chat message
+├── ModelsMockData.swift                   # Sample data for all models
+├── UtilitiesConstants.swift               # App-wide constants
+└── ResourcesConfig.example.swift          # Config template
+```
 
 ## Common Use Cases
 - "Need 2 bags of ice - $10 - ASAP"
@@ -131,167 +115,83 @@ School {
 # Development To-Do List
 
 ## Phase 1: Project Setup & Foundation
-- [ ] Create new Xcode project (iOS, SwiftUI)
-  - [ ] Set minimum deployment target (iOS 17.0+)
-  - [ ] Configure bundle identifier
-  - [ ] Set up project organization structure
-- [ ] Set up folder structure
-  - [ ] Models/
-  - [ ] Views/
-  - [ ] ViewModels/
-  - [ ] Services/
-  - [ ] Utilities/
-  - [ ] Resources/
-- [ ] Add necessary dependencies
-  - [ ] Firebase SDK (Auth, Firestore, Realtime Database)
-  - [ ] Stripe iOS SDK
-  - [ ] Swift Package Manager configuration
-- [ ] Configure Info.plist requirements
-  - [ ] Location usage descriptions
-  - [ ] Camera usage (future profile photos)
-  - [ ] Push notification capabilities
-- [ ] Set up .gitignore (API keys, secrets)
-- [ ] Create development environment config file
+- [x] Xcode project with SwiftUI
+- [x] Flat file organization (CategoryName.swift)
+- [x] Info.plist with location permissions
+- [x] Constants and config system
+- [x] iOS-only target (iPhone + iPad)
 
-## Phase 2: Core Data Models ✓
-- [x] Define User model
-- [x] Define Request model with urgency enum
-- [x] Define Offer model for negotiation
-- [x] Define Transaction model
-- [x] Define Message model
-- [x] Define School model
-- [x] Create mock data for testing/previews
+## Phase 2: Core Data Models
+- [x] User, School, Request, Offer, Transaction, Message models
+- [x] Full validation, computed properties, Codable conformance
+- [x] Comprehensive MockData with sample data for all models
 
-## Phase 3: Authentication & Onboarding
-- [ ] Set up Firebase Authentication
-- [ ] Build email entry + verification view
-- [ ] Build school selection view (dropdown/picker)
-- [ ] Build phone verification view (SMS)
-- [ ] Build display name creation view
-- [ ] Create authentication service/manager
-- [ ] Implement session persistence
-- [ ] Add "Sign Out" functionality
+## Phase 3: Authentication & Onboarding (Mock)
+- [x] AppState (@Observable) as central state container
+- [x] Welcome screen with demo login option
+- [x] .edu email entry with school auto-detection
+- [x] Profile setup (display name, phone)
+- [x] RootView routing between onboarding and main app
 
 ## Phase 4: Location & Maps
-- [ ] Set up MapKit integration
-- [ ] Request location permissions
-- [ ] Build map view centered on user
-- [ ] Add location service wrapper
-- [ ] Implement radius calculation utilities
-- [ ] Test location updates
+- [x] LocationService wrapping CLLocationManager
+- [x] Fallback to Stanford campus coordinates
+- [x] MapKit view with color-coded request pins
+- [x] 4-tab layout (Feed, Map, Activity, Profile)
 
-## Phase 5: Request Creation Flow
-- [ ] Build "Create Request" screen
-  - [ ] Item description text input
-  - [ ] Price input with validation
-  - [ ] Urgency selector UI
-  - [ ] Radius slider (default 10 min walk)
-  - [ ] Duration selector (default 2 hours)
-- [ ] Implement request posting logic
-- [ ] Connect to backend API
-- [ ] Add form validation
+## Phase 5: Request Creation
+- [x] Full request form (description, price, urgency, radius, duration)
+- [x] Platform fee preview
+- [x] Reusable RequestCard component
 
-## Phase 6: Feed & Request Display
-- [ ] Build feed view (list of nearby requests)
-- [ ] Display request cards with key info
-- [ ] Add pull-to-refresh functionality
-- [ ] Filter by distance/urgency
-- [ ] Show active transactions section
-- [ ] Implement real-time updates
+## Phase 6: Feed & Activity
+- [x] Searchable/filterable feed of nearby requests
+- [x] Activity view with my requests + active transactions
+- [x] Completed transaction history
 
 ## Phase 7: Request Detail & Negotiation
-- [ ] Build request detail view (requester perspective)
-  - [ ] Display incoming offers
-  - [ ] Accept/decline buttons
-  - [ ] Counter-offer input
-- [ ] Build request detail view (fulfiller perspective)
-  - [ ] Accept/counter/ignore buttons
-  - [ ] Counter-offer input
-- [ ] Implement negotiation state management
-- [ ] Add real-time offer updates
-- [ ] Show negotiation history
+- [x] Dual-role detail view (requester vs fulfiller)
+- [x] Make offer / counter-offer flow
+- [x] Accept/decline logic
+- [x] Negotiation history display
 
 ## Phase 8: Chat System
-- [ ] Set up Firebase Realtime Database for chat
-- [ ] Build chat view UI
-- [ ] Implement message sending
-- [ ] Implement message receiving (real-time)
-- [ ] Add message read status
-- [ ] Unlock chat only after match accepted
-- [ ] Add "Mark Complete" button in chat
+- [x] Message bubbles with timestamps
+- [x] Real-time-style message list
+- [x] Unread message counts
+- [x] Chat list for active conversations
 
-## Phase 9: Payment Integration
-- [ ] Set up Stripe Connect account
-- [ ] Integrate Stripe iOS SDK
-- [ ] Build payment method entry screen
-- [ ] Implement payment capture on acceptance
-- [ ] Hold payment in escrow
-- [ ] Release payment on dual confirmation
-- [ ] Calculate and apply platform fee (10%, $2 cap)
-- [ ] Handle payment failures
-
-## Phase 10: Completion Flow
-- [ ] Build completion confirmation UI (both parties)
-- [ ] Implement dual confirmation logic
-- [ ] Trigger payment release
-- [ ] Update transaction status
-- [ ] Show completion success state
-- [ ] Archive completed transactions
+## Phase 9–10: Payment & Completion
+- [x] Fee breakdown display (item + 10% fee capped at $2)
+- [x] Dual confirmation UI
+- [x] Transaction completes when both parties confirm
+- [x] Celebration state on completion
 
 ## Phase 11: Profile & Settings
-- [ ] Build basic profile view
-  - [ ] Display name
-  - [ ] School
-  - [ ] Transaction history
-- [ ] Build settings view
-  - [ ] Notification preferences
-  - [ ] Payment methods management
-  - [ ] Account settings
-- [ ] Implement sign-out functionality
+- [x] Profile with stats (rating, transaction count)
+- [x] Transaction history list
+- [x] Settings with notification toggles
+- [x] Sign out returns to onboarding
 
 ## Phase 12: Push Notifications
-- [ ] Configure APNs in Xcode
-- [ ] Set up push notification certificates
-- [ ] Implement notification handling
-- [ ] Send notifications to nearby users on request creation
-- [ ] Handle notification tap (deep linking)
-- [ ] Request notification permissions
+- [ ] Configure APNs
+- [ ] Notify nearby users on new requests
 
 ## Phase 13: Backend Development
-- [ ] Choose backend framework (Node.js/FastAPI/serverless)
-- [ ] Set up database (PostgreSQL/Firestore)
-- [ ] Design and implement REST/GraphQL API
-  - [ ] User endpoints (CRUD)
-  - [ ] Request endpoints (CRUD, nearby search)
-  - [ ] Offer endpoints (negotiation)
-  - [ ] Transaction endpoints
-  - [ ] Chat endpoints (or use Firebase)
-- [ ] Implement location-based queries
-- [ ] Add authentication middleware
-- [ ] Set up WebSocket server (if not using Firebase)
-- [ ] Deploy to staging environment
+- [ ] Choose backend framework
+- [ ] Replace mock data with real API calls
+- [ ] Real authentication (Firebase Auth or custom)
+- [ ] Real payments (Stripe Connect)
+- [ ] Real-time chat (WebSocket or Firebase)
 
 ## Phase 14: Testing & Polish
-- [ ] Write unit tests for core models
-- [ ] Write unit tests for services
-- [ ] Test authentication flow end-to-end
-- [ ] Test request creation and fulfillment flow
-- [ ] Test negotiation flow
-- [ ] Test payment flow
-- [ ] Test chat functionality
-- [ ] Add loading states
-- [ ] Add error handling and user feedback
-- [ ] Polish UI/UX (animations, haptics)
-- [ ] Test on real devices
+- [ ] Unit tests for models and AppState
+- [ ] UI polish, animations, haptics
+- [ ] Error handling and edge cases
 
 ## Phase 15: Pre-Launch
-- [ ] Create App Store assets (icon, screenshots)
-- [ ] Write Terms of Service
-- [ ] Write Privacy Policy
-- [ ] Set up TestFlight for beta testing
-- [ ] Recruit beta testers (one campus)
-- [ ] Collect and implement beta feedback
-- [ ] Submit to App Store review
+- [ ] TestFlight beta
+- [ ] App Store submission
 
 ## Post-MVP Features (Future)
 - [ ] Ratings and reviews system
@@ -305,4 +205,4 @@ School {
 
 ---
 
-*Created: 2026-02-05*
+*Last updated: February 6, 2026*

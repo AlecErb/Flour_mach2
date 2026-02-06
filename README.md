@@ -1,162 +1,136 @@
-# Flour 🌾
+# Flour
 
 A hyperlocal, real-time marketplace for immediate needs on college campuses.
 
 ![Platform](https://img.shields.io/badge/platform-iOS-lightgrey)
 ![Swift](https://img.shields.io/badge/Swift-5.9+-orange)
-![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS%2017.0+-blue)
+![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS%2017+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Overview
 
-Flour connects college students who need items immediately with nearby people who can fulfill those requests. Think Uber meets Venmo for borrowing/buying from neighbors.
+Flour connects college students who need items immediately with nearby people who can fulfill those requests. Post a request, get offers from people nearby, negotiate, chat, meet up, and complete the exchange — all within minutes.
 
 **Key Features:**
-- 🗺️ Real-time map-based request system
-- 💬 Anonymous until match, then in-app chat
-- 💰 Integrated payments with Stripe
-- 🔔 Push notifications to nearby users
-- 🤝 Negotiation system with counter-offers
-- 🎓 College-verified accounts (.edu email)
+- Map-based request system with urgency levels
+- Anonymous until match, then in-app chat
+- Offer/counter-offer negotiation
+- Dual-confirmation completion flow
+- Platform fee calculation (10%, capped at $2)
+- College-verified accounts (.edu email)
+
+## Current Status
+
+**Phases 1–11 complete** — the full user flow works end-to-end with mock data:
+
+Onboard → Create request → Browse feed → Make offer → Accept → Chat → Confirm completion → View history → Sign out
+
+All backend services (auth, payments, chat) are mocked in-memory via `AppState`. No Firebase or Stripe dependencies yet.
 
 ## Tech Stack
 
-- **Frontend:** SwiftUI (iOS 17.0+)
-- **Maps:** MapKit
-- **Payments:** Stripe Connect
-- **Real-time Chat:** Firebase Realtime Database
-- **Authentication:** Firebase Auth
-- **Backend:** TBD (Node.js/Python/Serverless)
-- **Database:** PostgreSQL or Firebase Firestore
-- **Push Notifications:** Apple Push Notification Service (APNs)
-
-## Project Status
-
-🚧 **Currently in Development** - Phase 1: Project Setup
-
-See [CLAUDE.md](CLAUDE.md) for detailed development roadmap and context.
+- **Platform:** iOS (SwiftUI, iOS 17+)
+- **State:** `@Observable` with environment injection
+- **Maps:** MapKit + CoreLocation
+- **Backend:** Mock (in-memory) — real backend TBD
+- **IDE:** Xcode 26.2
 
 ## Getting Started
 
 ### Prerequisites
 
-- Xcode 15.0+
-- iOS 17.0+ deployment target
-- CocoaPods or Swift Package Manager
-- Firebase account
-- Stripe account (for payments)
+- Xcode 15.0+ (developed on Xcode 26.2 beta)
+- iOS 17.0+ device or simulator
 
-### Installation
+### Run It
 
 ```bash
-# Clone the repository
 git clone https://github.com/AlecErb/Flour_mach2.git
 cd Flour_mach2
-
-# Install dependencies (will be added in Phase 1)
-# Swift Package Manager dependencies will be managed in Xcode
-
-# Open the project
-open Flour.xcodeproj
+open Flour_mach2.xcodeproj
 ```
 
-### Configuration
-
-1. **Firebase Setup**
-   - Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-   - Download `GoogleService-Info.plist` and add it to the project
-   - Enable Authentication, Firestore, and Realtime Database
-
-2. **Stripe Setup**
-   - Create a Stripe account at [stripe.com](https://stripe.com)
-   - Get your publishable and secret keys
-   - Add keys to `Config.swift` (not tracked in git)
-
-3. **Environment Variables**
-   - Copy `Config.example.swift` to `Config.swift`
-   - Fill in your API keys and configuration
+Select an iPhone simulator and hit Run (Cmd+R). No dependencies to install — everything runs locally with mock data.
 
 ## Project Structure
 
+All Swift files live in the project root with a flat naming convention:
+
 ```
-Flour/
-├── Models/              # Data models (User, Request, Offer, etc.)
-├── Views/               # SwiftUI views
-│   ├── Onboarding/     # Sign up and verification flows
-│   ├── Home/           # Map view and feed
-│   ├── Requests/       # Request creation and detail views
-│   ├── Chat/           # In-app messaging
-│   └── Profile/        # User profile and settings
-├── ViewModels/          # View models and business logic
-├── Services/            # API clients, Firebase, Stripe integration
-├── Utilities/           # Helpers, extensions, constants
-└── Resources/           # Assets, fonts, etc.
+Flour_mach2/
+├── FlourApp.swift                          # App entry point
+├── ServicesAppState.swift                  # Central @Observable state container
+├── ServicesLocationService.swift           # CoreLocation wrapper
+├── ViewsRootView.swift                    # Routes onboarding vs main app
+├── ViewsOnboardingWelcomeView.swift       # Welcome screen
+├── ViewsOnboardingEmailView.swift         # .edu email entry
+├── ViewsOnboardingProfileSetupView.swift  # Profile creation
+├── ViewsMainTabView.swift                 # 4-tab layout + create button
+├── ViewsFeedView.swift                    # Nearby requests list
+├── ViewsMapView.swift                     # MapKit with request pins
+├── ViewsActivityView.swift                # My requests + transactions
+├── ViewsCreateRequestView.swift           # New request form
+├── ViewsRequestDetailView.swift           # Request info + actions
+├── ViewsOfferSheet.swift                  # Make/counter offer
+├── ViewsNegotiationHistoryView.swift      # Offer chain display
+├── ViewsChatView.swift                    # Message bubbles + input
+├── ViewsChatListView.swift                # Active conversations
+├── ViewsCompletionView.swift              # Dual confirmation
+├── ViewsProfileView.swift                 # User info + stats
+├── ViewsSettingsView.swift                # Notification/payment toggles
+├── ViewsTransactionHistoryView.swift      # Past transactions
+├── SharedRequestCard.swift                # Reusable request card
+├── SharedFeeBreakdownView.swift           # Price/fee/total display
+├── ModelsUser.swift                       # User model
+├── ModelsSchool.swift                     # School model
+├── ModelsRequest.swift                    # Request + Urgency + Location
+├── ModelsOffer.swift                      # Offer + counter-offer
+├── ModelsTransaction.swift                # Transaction + fee calc
+├── ModelsMessage.swift                    # Chat message
+├── ModelsMockData.swift                   # Sample data for all models
+├── UtilitiesConstants.swift               # App-wide constants
+└── ResourcesConfig.example.swift          # Config template
 ```
 
-## Key User Flows
+## User Flows
 
-### Requester Flow
-1. Tap "New Request" on map
-2. Enter item description, price, urgency
-3. Post → nearby users notified
-4. Review incoming offers/counter-offers
-5. Accept a fulfiller → chat unlocks
-6. Coordinate meetup
-7. Complete exchange → payment transfers
+### Requester
+1. Tap "+" → enter item, price, urgency, radius
+2. Post request → appears on map and feed
+3. Review incoming offers → accept, decline, or counter
+4. Chat with fulfiller → coordinate meetup
+5. Both confirm completion → transaction done
 
-### Fulfiller Flow
-1. Receive push notification about nearby request
-2. View details: item, price, distance
-3. Accept, counter-offer, or ignore
-4. If accepted → chat unlocks
-5. Coordinate meetup
-6. Complete exchange → receive payment
+### Fulfiller
+1. Browse feed or map for nearby requests
+2. Tap a request → make an offer
+3. Negotiate if needed → get accepted
+4. Chat with requester → coordinate meetup
+5. Both confirm completion → transaction done
 
 ## Revenue Model
 
 - **Platform Fee:** 10% of item price, capped at $2
 - **Buyer pays:** Item price + platform fee
-- **Seller receives:** Full agreed price (no fees deducted)
-
-**Examples:**
-- $5 item → $0.50 fee → Buyer pays $5.50
-- $30 item → $2.00 fee (capped) → Buyer pays $32
-
-## Privacy & Safety
-
-- ✅ .edu email verification required
-- ✅ Phone number verification
-- ✅ Anonymous until match accepted
-- ✅ In-app chat only (no phone numbers shared)
-- ✅ Prohibited items banned in Terms of Service
-- 🔜 Ratings and reviews (post-MVP)
-- 🔜 Report and block functionality
-
-## Contributing
-
-This is currently a private project in early development. Contributing guidelines will be added in the future.
+- **Seller receives:** Full agreed price
 
 ## Roadmap
 
-- [x] Design document completed
-- [x] GitHub repository setup
-- [ ] Phase 1: Project setup and foundation
-- [ ] Phase 2: Core data models
-- [ ] Phase 3: Authentication & onboarding
-- [ ] Phase 4: Location & maps
-- [ ] Phase 5: Request creation flow
-- [ ] Phase 6: Feed & request display
-- [ ] Phase 7: Request detail & negotiation
-- [ ] Phase 8: Chat system
-- [ ] Phase 9: Payment integration
-- [ ] Phase 10: Completion flow
-- [ ] Phase 11: Profile & settings
+- [x] Phase 1: Project setup & foundation
+- [x] Phase 2: Core data models
+- [x] Phase 3: Authentication & onboarding (mock)
+- [x] Phase 4: Location & maps
+- [x] Phase 5: Request creation
+- [x] Phase 6: Feed & activity
+- [x] Phase 7: Request detail & negotiation
+- [x] Phase 8: Chat system
+- [x] Phase 9: Payment display
+- [x] Phase 10: Completion flow
+- [x] Phase 11: Profile & settings
 - [ ] Phase 12: Push notifications
 - [ ] Phase 13: Backend development
 - [ ] Phase 14: Testing & polish
-- [ ] Phase 15: Pre-launch preparation
-
-See [CLAUDE.md](CLAUDE.md) for detailed task breakdowns.
+- [ ] Phase 15: Pre-launch
 
 ## License
 
@@ -167,8 +141,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Developer:** Alec Erb
 - **Repository:** [github.com/AlecErb/Flour_mach2](https://github.com/AlecErb/Flour_mach2)
 
----
-
-**Target Launch:** Beta testing on one college campus, then gradual rollout.
-
-*Last updated: February 5, 2026*
+*Last updated: February 6, 2026*

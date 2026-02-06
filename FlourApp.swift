@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct FlourApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
+	@State private var appState = AppState()
+	@State private var locationService = LocationService()
+
+	var body: some Scene {
+		WindowGroup {
+			ViewsRootView()
+				.environment(appState)
+				.environment(locationService)
+		}
+	}
 }
