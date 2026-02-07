@@ -11,7 +11,9 @@ import Observation
 
 @Observable
 class FirestoreService {
-	private let db = Firestore.firestore()
+	private var db: Firestore {
+		Firestore.firestore()
+	}
 
 	var isLoading = false
 	var errorMessage: String?
