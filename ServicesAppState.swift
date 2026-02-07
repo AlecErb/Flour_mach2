@@ -48,13 +48,16 @@ class AppState {
 						await loadUserData()
 					} else {
 						// Create user record if doesn't exist
-						currentUser = User(
+						let newUser = User(
 							id: firebaseUser.uid,
 							displayName: firebaseUser.displayName ?? "User",
 							email: firebaseUser.email ?? "",
 							phone: "",
 							schoolId: ""
 						)
+						currentUser = newUser
+						// Save new user to Firestore
+						try? await firestoreService.saveUser(newUser)
 					}
 				} catch {
 					print("❌ Error loading user: \(error)")
@@ -93,7 +96,8 @@ class AppState {
 				id: authService.firebaseUser?.uid ?? UUID().uuidString,
 				displayName: displayName,
 				email: email,
-				phone: phone
+				phone: phone,
+				schoolId: ""
 			)
 			users.append(user)
 			currentUser = user
