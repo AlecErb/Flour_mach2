@@ -12,7 +12,6 @@ struct ViewsRootView: View {
 
 	@State private var onboardingStep = 0
 	@State private var email = ""
-	@State private var detectedSchool: School?
 
 	var body: some View {
 		Group {
@@ -37,14 +36,12 @@ struct ViewsRootView: View {
 		case 1:
 			ViewsOnboardingEmailView(
 				onboardingStep: $onboardingStep,
-				email: $email,
-				detectedSchool: $detectedSchool
+				email: $email
 			)
 		case 2:
 			ViewsOnboardingProfileSetupView(
 				onboardingStep: $onboardingStep,
-				email: email,
-				detectedSchool: detectedSchool
+				email: email
 			)
 		case 3:
 			ViewsOnboardingSignInView(onboardingStep: $onboardingStep)

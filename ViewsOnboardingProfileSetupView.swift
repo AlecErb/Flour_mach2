@@ -11,7 +11,6 @@ struct ViewsOnboardingProfileSetupView: View {
 	@Environment(AppState.self) private var appState
 	@Binding var onboardingStep: Int
 	let email: String
-	let detectedSchool: School?
 
 	@State private var displayName = ""
 	@State private var phone = ""
@@ -98,12 +97,6 @@ struct ViewsOnboardingProfileSetupView: View {
 			}
 			.padding(.horizontal, Constants.UI.largePadding)
 
-			if let school = detectedSchool {
-				Label(school.name, systemImage: "building.columns")
-					.foregroundStyle(.secondary)
-					.font(.subheadline)
-			}
-
 			if let error = errorMessage {
 				Text(error)
 					.foregroundStyle(.red)
@@ -122,13 +115,11 @@ struct ViewsOnboardingProfileSetupView: View {
 				Task {
 					isLoading = true
 					errorMessage = nil
-					let schoolId = detectedSchool?.id ?? "unknown"
 					await appState.signUp(
 						email: email,
 						password: password,
 						displayName: displayName,
-						phone: phone,
-						schoolId: schoolId
+						phone: phone
 					)
 					if let error = appState.authError {
 						errorMessage = error

@@ -11,7 +11,7 @@ import Foundation
 struct User: Identifiable, Codable, Hashable {
     let id: String
     var displayName: String
-    var email: String // .edu email
+    var email: String
     var phone: String
     var schoolId: String
     var createdAt: Date
@@ -31,9 +31,8 @@ struct User: Identifiable, Codable, Hashable {
     // Validation
     var isValid: Bool {
         return !displayName.isEmpty &&
-               email.contains(".edu") &&
-               !phone.isEmpty &&
-               !schoolId.isEmpty
+               email.contains("@") &&
+               !phone.isEmpty
     }
     
     init(
@@ -64,9 +63,9 @@ struct User: Identifiable, Codable, Hashable {
 // MARK: - Extensions
 
 extension User {
-    /// Check if email is a valid .edu email
-    var hasValidEduEmail: Bool {
-        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.edu"
+    /// Check if email is valid
+    var hasValidEmail: Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
     }

@@ -58,7 +58,6 @@ enum Constants {
         static let maxDisplayNameLength = 30
         static let maxItemDescriptionLength = 200
         static let maxMessageLength = 500
-        static let eduEmailDomains = [".edu"] // Can be expanded
     }
     
     // MARK: - UI Constants

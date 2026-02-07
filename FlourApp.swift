@@ -14,7 +14,9 @@ struct FlourApp: App {
 	@State private var locationService = LocationService()
 
 	init() {
+		print("🔥 Firebase initializing...")
 		FirebaseApp.configure()
+		print("✅ Firebase initialized successfully")
 	}
 
 	var body: some Scene {
@@ -22,6 +24,9 @@ struct FlourApp: App {
 			ViewsRootView()
 				.environment(appState)
 				.environment(locationService)
+				.onAppear {
+					appState.restoreSession()
+				}
 		}
 	}
 }

@@ -13,10 +13,6 @@ struct ViewsProfileView: View {
 
 	private var user: User? { appState.currentUser }
 
-	private var school: School? {
-		guard let schoolId = user?.schoolId else { return nil }
-		return appState.school(withId: schoolId)
-	}
 
 	var body: some View {
 		List {
@@ -36,12 +32,6 @@ struct ViewsProfileView: View {
 						Text(user?.displayName ?? "Unknown")
 							.font(.title3)
 							.fontWeight(.semibold)
-
-						if let school = school {
-							Label(school.name, systemImage: "building.columns")
-								.font(.caption)
-								.foregroundStyle(.secondary)
-						}
 
 						Text(user?.email ?? "")
 							.font(.caption)

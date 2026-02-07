@@ -19,6 +19,7 @@ class AppState {
 
 	private let authService = AuthService()
 	private let stripeService = StripeService()
+	private let firestoreService = FirestoreService()
 
 	// MARK: - Data
 	var schools: [School] = MockData.schools
@@ -29,21 +30,59 @@ class AppState {
 	var messages: [Message] = MockData.messages
 
 	init() {
-		// Restore Firebase session from previous launch
+		// Don't access Firebase here — it hasn't been configured yet.
+		// Call restoreSession() from onAppear instead.
+	}
+
+	/// Restore Firebase session after FirebaseApp.configure() has been called
+	func restoreSession() {
+		guard currentUser == nil else { return }
 		if let firebaseUser = authService.firebaseUser {
-			currentUser = User(
-				id: firebaseUser.uid,
-				displayName: firebaseUser.displayName ?? "User",
-				email: firebaseUser.email ?? "",
-				phone: "",
-				schoolId: ""
-			)
+			print("✅ Found existing Firebase user: \(firebaseUser.email ?? "unknown")")
+			Task {
+				do {
+					// Load user from Firestore
+					if let user = try await firestoreService.loadUser(id: firebaseUser.uid) {
+						currentUser = user
+						// Load user's data
+						await loadUserData()
+					} else {
+						// Create user record if doesn't exist
+						currentUser = User(
+							id: firebaseUser.uid,
+							displayName: firebaseUser.displayName ?? "User",
+							email: firebaseUser.email ?? "",
+							phone: "",
+							schoolId: ""
+						)
+					}
+				} catch {
+					print("❌ Error loading user: \(error)")
+				}
+			}
+		}
+	}
+
+	/// Load all user data from Firestore
+	private func loadUserData() async {
+		guard let userId = currentUser?.id else { return }
+
+		do {
+			// Load requests
+			requests = try await firestoreService.loadRequests()
+
+			// Load user's transactions
+			transactions = try await firestoreService.loadTransactions(forUser: userId)
+
+			print("✅ Loaded \(requests.count) requests, \(transactions.count) transactions")
+		} catch {
+			print("❌ Error loading user data: \(error)")
 		}
 	}
 
 	// MARK: - Firebase Auth Methods
 
-	func signUp(email: String, password: String, displayName: String, phone: String, schoolId: String) async {
+	func signUp(email: String, password: String, displayName: String, phone: String) async {
 		authIsLoading = true
 		authError = nil
 		defer { authIsLoading = false }
@@ -54,11 +93,13 @@ class AppState {
 				id: authService.firebaseUser?.uid ?? UUID().uuidString,
 				displayName: displayName,
 				email: email,
-				phone: phone,
-				schoolId: schoolId
+				phone: phone
 			)
 			users.append(user)
 			currentUser = user
+
+			// Save to Firestore
+			try await firestoreService.saveUser(user)
 		} catch {
 			authError = error.localizedDescription
 		}
@@ -137,6 +178,11 @@ class AppState {
 			durationHours: durationHours
 		)
 		requests.insert(request, at: 0)
+
+		// Save to Firestore
+		Task {
+			try? await firestoreService.saveRequest(request)
+		}
 	}
 
 	func cancelRequest(_ requestId: String) {
@@ -161,6 +207,12 @@ class AppState {
 
 		if let idx = requests.firstIndex(where: { $0.id == requestId }) {
 			requests[idx].status = .negotiating
+
+			// Save to Firestore
+			Task {
+				try? await firestoreService.saveOffer(offer)
+				try? await firestoreService.saveRequest(requests[idx])
+			}
 		}
 	}
 
@@ -181,6 +233,13 @@ class AppState {
 			itemPrice: offer.amount
 		)
 		transactions.append(transaction)
+
+		// Save to Firestore
+		Task {
+			try? await firestoreService.saveOffer(offers[offerIdx])
+			try? await firestoreService.saveRequest(requests[reqIdx])
+			try? await firestoreService.saveTransaction(transaction)
+		}
 	}
 
 	func declineOffer(_ offerId: String) {
@@ -215,6 +274,17 @@ class AppState {
 		if transactions[idx].bothConfirmed {
 			if let reqIdx = requests.firstIndex(where: { $0.id == transactions[idx].requestId }) {
 				requests[reqIdx].status = .completed
+
+				// Save to Firestore
+				Task {
+					try? await firestoreService.saveTransaction(transactions[idx])
+					try? await firestoreService.saveRequest(requests[reqIdx])
+				}
+			}
+		} else {
+			// Save partial confirmation
+			Task {
+				try? await firestoreService.saveTransaction(transactions[idx])
 			}
 		}
 	}
@@ -234,6 +304,11 @@ class AppState {
 			content: content
 		)
 		messages.append(message)
+
+		// Save to Firestore
+		Task {
+			try? await firestoreService.saveMessage(message)
+		}
 	}
 
 	func markMessagesRead(transactionId: String) {

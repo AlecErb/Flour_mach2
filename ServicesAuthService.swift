@@ -11,15 +11,14 @@ import Observation
 
 @Observable
 class AuthService {
-	var firebaseUser: FirebaseAuth.User?
-	var isAuthenticated: Bool { firebaseUser != nil }
 	var isLoading = false
 	var errorMessage: String?
 
-	init() {
-		// Restore session from previous launch
-		firebaseUser = Auth.auth().currentUser
+	var firebaseUser: FirebaseAuth.User? {
+		Auth.auth().currentUser
 	}
+
+	var isAuthenticated: Bool { firebaseUser != nil }
 
 	func signUp(email: String, password: String, displayName: String) async throws {
 		isLoading = true
@@ -31,7 +30,6 @@ class AuthService {
 			let changeRequest = result.user.createProfileChangeRequest()
 			changeRequest.displayName = displayName
 			try await changeRequest.commitChanges()
-			firebaseUser = result.user
 		} catch {
 			errorMessage = error.localizedDescription
 			throw error
@@ -44,8 +42,7 @@ class AuthService {
 		defer { isLoading = false }
 
 		do {
-			let result = try await Auth.auth().signIn(withEmail: email, password: password)
-			firebaseUser = result.user
+			_ = try await Auth.auth().signIn(withEmail: email, password: password)
 		} catch {
 			errorMessage = error.localizedDescription
 			throw error
@@ -54,6 +51,5 @@ class AuthService {
 
 	func signOut() {
 		try? Auth.auth().signOut()
-		firebaseUser = nil
 	}
 }

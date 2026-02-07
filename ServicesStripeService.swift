@@ -8,7 +8,9 @@ class StripeService {
 	var isProcessing = false
 	var errorMessage: String?
 
-	private let functions = Functions.functions()
+	private var functions: Functions {
+		Functions.functions()
+	}
 
 	/// Create a Stripe Connected Account for a seller
 	/// Returns the onboarding URL to open in Safari/WebView
