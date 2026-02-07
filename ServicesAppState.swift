@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 import Observation
 
 @Observable
@@ -13,6 +14,10 @@ class AppState {
 	// MARK: - Auth State
 	var currentUser: User?
 	var isLoggedIn: Bool { currentUser != nil }
+	var authIsLoading = false
+	var authError: String?
+
+	private let authService = AuthService()
 
 	// MARK: - Data
 	var schools: [School] = MockData.schools
@@ -22,10 +27,61 @@ class AppState {
 	var transactions: [Transaction] = MockData.transactions
 	var messages: [Message] = MockData.messages
 
-	// MARK: - Auth Methods
+	init() {
+		// Restore Firebase session from previous launch
+		if let firebaseUser = authService.firebaseUser {
+			currentUser = User(
+				id: firebaseUser.uid,
+				displayName: firebaseUser.displayName ?? "User",
+				email: firebaseUser.email ?? "",
+				phone: "",
+				schoolId: ""
+			)
+		}
+	}
 
-	func login(as user: User) {
-		currentUser = user
+	// MARK: - Firebase Auth Methods
+
+	func signUp(email: String, password: String, displayName: String, phone: String, schoolId: String) async {
+		authIsLoading = true
+		authError = nil
+		defer { authIsLoading = false }
+
+		do {
+			try await authService.signUp(email: email, password: password, displayName: displayName)
+			let user = User(
+				id: authService.firebaseUser?.uid ?? UUID().uuidString,
+				displayName: displayName,
+				email: email,
+				phone: phone,
+				schoolId: schoolId
+			)
+			users.append(user)
+			currentUser = user
+		} catch {
+			authError = error.localizedDescription
+		}
+	}
+
+	func signIn(email: String, password: String) async throws {
+		authIsLoading = true
+		authError = nil
+		defer { authIsLoading = false }
+
+		do {
+			try await authService.signIn(email: email, password: password)
+			let firebaseUser = authService.firebaseUser
+			currentUser = User(
+				id: firebaseUser?.uid ?? UUID().uuidString,
+				displayName: firebaseUser?.displayName ?? "User",
+				email: firebaseUser?.email ?? email,
+				phone: "",
+				schoolId: ""
+			)
+		} catch {
+			authError = error.localizedDescription
+			throw error
+		}
 	}
 
 	func loginAsDemo() {
@@ -33,18 +89,8 @@ class AppState {
 	}
 
 	func logout() {
+		authService.signOut()
 		currentUser = nil
-	}
-
-	func createUser(displayName: String, email: String, phone: String, schoolId: String) {
-		let user = User(
-			displayName: displayName,
-			email: email,
-			phone: phone,
-			schoolId: schoolId
-		)
-		users.append(user)
-		currentUser = user
 	}
 
 	// MARK: - School Lookup

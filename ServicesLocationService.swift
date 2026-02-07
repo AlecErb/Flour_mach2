@@ -16,11 +16,11 @@ class LocationService: NSObject, CLLocationManagerDelegate {
 	var userLocation: CLLocationCoordinate2D?
 	var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
-	// Fallback to Stanford campus
+	// Fallback to University of Utah campus
 	var currentLocation: CLLocationCoordinate2D {
 		userLocation ?? CLLocationCoordinate2D(
-			latitude: MockData.stanfordLocation.latitude,
-			longitude: MockData.stanfordLocation.longitude
+			latitude: MockData.campusCenter.latitude,
+			longitude: MockData.campusCenter.longitude
 		)
 	}
 

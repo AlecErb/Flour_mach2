@@ -48,8 +48,13 @@ struct ViewsOnboardingWelcomeView: View {
 			.tint(.green)
 			.padding(.horizontal, Constants.UI.largePadding)
 
+			Button("Sign In") {
+				withAnimation { onboardingStep = 3 }
+			}
+			.font(.subheadline)
+			.fontWeight(.medium)
+
 			Button("Skip — Use Demo Account") {
-				// Handled by parent
 				onboardingStep = -1
 			}
 			.font(.subheadline)

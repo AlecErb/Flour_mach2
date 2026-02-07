@@ -46,6 +46,8 @@ struct ViewsRootView: View {
 				email: email,
 				detectedSchool: detectedSchool
 			)
+		case 3:
+			ViewsOnboardingSignInView(onboardingStep: $onboardingStep)
 		default:
 			ViewsOnboardingWelcomeView(onboardingStep: $onboardingStep)
 		}

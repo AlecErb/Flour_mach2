@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct FlourApp: App {
 	@State private var appState = AppState()
 	@State private var locationService = LocationService()
+
+	init() {
+		FirebaseApp.configure()
+	}
 
 	var body: some Scene {
 		WindowGroup {

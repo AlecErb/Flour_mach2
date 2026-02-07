@@ -15,12 +15,21 @@ struct ViewsOnboardingProfileSetupView: View {
 
 	@State private var displayName = ""
 	@State private var phone = ""
-	@State private var showError = false
+	@State private var password = ""
+	@State private var confirmPassword = ""
+	@State private var isLoading = false
+	@State private var errorMessage: String?
 
 	private var isValid: Bool {
 		displayName.count >= Constants.Validation.minDisplayNameLength &&
 		displayName.count <= Constants.Validation.maxDisplayNameLength &&
-		phone.count >= 7
+		phone.count >= 7 &&
+		password.count >= 6 &&
+		password == confirmPassword
+	}
+
+	private var passwordMismatch: Bool {
+		!confirmPassword.isEmpty && password != confirmPassword
 	}
 
 	var body: some View {
@@ -58,6 +67,34 @@ struct ViewsOnboardingProfileSetupView: View {
 						.background(Color.gray.opacity(0.12))
 						.clipShape(RoundedRectangle(cornerRadius: Constants.UI.cornerRadius))
 				}
+
+				VStack(alignment: .leading, spacing: 4) {
+					Text("Password (6+ characters)")
+						.font(.caption)
+						.foregroundStyle(.secondary)
+					SecureField("Create a password", text: $password)
+						.textContentType(.newPassword)
+						.padding()
+						.background(Color.gray.opacity(0.12))
+						.clipShape(RoundedRectangle(cornerRadius: Constants.UI.cornerRadius))
+				}
+
+				VStack(alignment: .leading, spacing: 4) {
+					Text("Confirm Password")
+						.font(.caption)
+						.foregroundStyle(.secondary)
+					SecureField("Re-enter password", text: $confirmPassword)
+						.textContentType(.newPassword)
+						.padding()
+						.background(Color.gray.opacity(0.12))
+						.clipShape(RoundedRectangle(cornerRadius: Constants.UI.cornerRadius))
+				}
+
+				if passwordMismatch {
+					Text("Passwords don't match")
+						.foregroundStyle(.red)
+						.font(.caption)
+				}
 			}
 			.padding(.horizontal, Constants.UI.largePadding)
 
@@ -67,34 +104,52 @@ struct ViewsOnboardingProfileSetupView: View {
 					.font(.subheadline)
 			}
 
-			if showError {
-				Text("Please fill in all fields correctly")
+			if let error = errorMessage {
+				Text(error)
 					.foregroundStyle(.red)
 					.font(.caption)
+					.multilineTextAlignment(.center)
+					.padding(.horizontal, Constants.UI.largePadding)
 			}
 
 			Spacer()
 
 			Button {
-				if isValid {
+				guard isValid else {
+					errorMessage = "Please fill in all fields correctly"
+					return
+				}
+				Task {
+					isLoading = true
+					errorMessage = nil
 					let schoolId = detectedSchool?.id ?? "unknown"
-					appState.createUser(
-						displayName: displayName,
+					await appState.signUp(
 						email: email,
+						password: password,
+						displayName: displayName,
 						phone: phone,
 						schoolId: schoolId
 					)
-				} else {
-					showError = true
+					if let error = appState.authError {
+						errorMessage = error
+					}
+					isLoading = false
 				}
 			} label: {
-				Text("Create Account")
-					.font(.headline)
-					.frame(maxWidth: .infinity)
-					.frame(height: Constants.UI.buttonHeight)
+				if isLoading {
+					ProgressView()
+						.frame(maxWidth: .infinity)
+						.frame(height: Constants.UI.buttonHeight)
+				} else {
+					Text("Create Account")
+						.font(.headline)
+						.frame(maxWidth: .infinity)
+						.frame(height: Constants.UI.buttonHeight)
+				}
 			}
 			.buttonStyle(.borderedProminent)
 			.tint(.green)
+			.disabled(!isValid || isLoading)
 			.padding(.horizontal, Constants.UI.largePadding)
 
 			Button("Back") {
