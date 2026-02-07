@@ -80,8 +80,8 @@ class FirestoreService {
 			.limit(to: 100)
 			.getDocuments()
 
-		return snapshot.documents.compactMap { doc in
-			guard let data = doc.data() as? [String: Any],
+		return snapshot.documents.compactMap { doc -> Request? in
+			guard let data = doc.data(),
 				  let requesterId = data["requesterId"] as? String,
 				  let itemDescription = data["itemDescription"] as? String,
 				  let offerPrice = data["offerPrice"] as? Double,
@@ -123,7 +123,7 @@ class FirestoreService {
 			"amount": offer.amount,
 			"status": offer.status.rawValue,
 			"isCounterOffer": offer.isCounterOffer,
-			"previousOfferId": offer.previousOfferId as Any,
+			"parentOfferId": offer.parentOfferId as Any,
 			"createdAt": Timestamp(date: offer.createdAt)
 		]
 
@@ -136,8 +136,8 @@ class FirestoreService {
 			.order(by: "createdAt", descending: false)
 			.getDocuments()
 
-		return snapshot.documents.compactMap { doc in
-			guard let data = doc.data() as? [String: Any],
+		return snapshot.documents.compactMap { doc -> Request? in
+			guard let data = doc.data(),
 				  let requestId = data["requestId"] as? String,
 				  let userId = data["userId"] as? String,
 				  let amount = data["amount"] as? Double,
@@ -154,8 +154,7 @@ class FirestoreService {
 				userId: userId,
 				amount: amount,
 				status: status,
-				isCounterOffer: isCounterOffer,
-				previousOfferId: data["previousOfferId"] as? String,
+				parentOfferId: data["parentOfferId"] as? String,
 				createdAt: createdAt
 			)
 		}
@@ -204,8 +203,8 @@ class FirestoreService {
 			}
 		}
 
-		return allDocs.compactMap { doc in
-			guard let data = doc.data() as? [String: Any],
+		return allDocs.compactMap { doc -> Transaction? in
+			guard let data = doc.data(),
 				  let requestId = data["requestId"] as? String,
 				  let requesterId = data["requesterId"] as? String,
 				  let fulfillerId = data["fulfillerId"] as? String,
@@ -257,8 +256,8 @@ class FirestoreService {
 			.order(by: "createdAt", descending: false)
 			.getDocuments()
 
-		return snapshot.documents.compactMap { doc in
-			guard let data = doc.data() as? [String: Any],
+		return snapshot.documents.compactMap { doc -> Request? in
+			guard let data = doc.data(),
 				  let transactionId = data["transactionId"] as? String,
 				  let senderId = data["senderId"] as? String,
 				  let content = data["content"] as? String,
@@ -272,8 +271,8 @@ class FirestoreService {
 				transactionId: transactionId,
 				senderId: senderId,
 				content: content,
-				isRead: isRead,
-				createdAt: createdAt
+				createdAt: createdAt,
+				isRead: isRead
 			)
 		}
 	}
@@ -288,7 +287,7 @@ class FirestoreService {
 				guard let documents = snapshot?.documents else { return }
 
 				let messages = documents.compactMap { doc -> Message? in
-					guard let data = doc.data() as? [String: Any],
+					guard let data = doc.data(),
 						  let transactionId = data["transactionId"] as? String,
 						  let senderId = data["senderId"] as? String,
 						  let content = data["content"] as? String,
@@ -302,8 +301,8 @@ class FirestoreService {
 						transactionId: transactionId,
 						senderId: senderId,
 						content: content,
-						isRead: isRead,
-						createdAt: createdAt
+						createdAt: createdAt,
+						isRead: isRead
 					)
 				}
 
