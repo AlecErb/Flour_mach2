@@ -81,8 +81,8 @@ class FirestoreService {
 			.getDocuments()
 
 		return snapshot.documents.compactMap { doc -> Request? in
-			guard let data = doc.data(),
-				  let requesterId = data["requesterId"] as? String,
+			let data = doc.data()
+			guard let requesterId = data["requesterId"] as? String,
 				  let itemDescription = data["itemDescription"] as? String,
 				  let offerPrice = data["offerPrice"] as? Double,
 				  let urgencyRaw = data["urgency"] as? String,
@@ -93,10 +93,13 @@ class FirestoreService {
 				  let lon = locationData["longitude"],
 				  let statusRaw = data["status"] as? String,
 				  let status = RequestStatus(rawValue: statusRaw),
-				  let createdAt = (data["createdAt"] as? Timestamp)?.dateValue(),
-				  let expiresAt = (data["expiresAt"] as? Timestamp)?.dateValue() else {
+				  let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() else {
 				return nil
 			}
+
+			// Calculate durationHours from expiresAt and createdAt
+			let expiresAt = (data["expiresAt"] as? Timestamp)?.dateValue() ?? createdAt.addingTimeInterval(7200)
+			let durationHours = expiresAt.timeIntervalSince(createdAt) / 3600
 
 			return Request(
 				id: doc.documentID,
@@ -109,7 +112,7 @@ class FirestoreService {
 				status: status,
 				fulfillerId: data["fulfillerId"] as? String,
 				createdAt: createdAt,
-				expiresAt: expiresAt
+				durationHours: durationHours
 			)
 		}
 	}
@@ -136,14 +139,13 @@ class FirestoreService {
 			.order(by: "createdAt", descending: false)
 			.getDocuments()
 
-		return snapshot.documents.compactMap { doc -> Request? in
-			guard let data = doc.data(),
-				  let requestId = data["requestId"] as? String,
+		return snapshot.documents.compactMap { doc -> Offer? in
+			let data = doc.data()
+			guard let requestId = data["requestId"] as? String,
 				  let userId = data["userId"] as? String,
 				  let amount = data["amount"] as? Double,
 				  let statusRaw = data["status"] as? String,
 				  let status = OfferStatus(rawValue: statusRaw),
-				  let isCounterOffer = data["isCounterOffer"] as? Bool,
 				  let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() else {
 				return nil
 			}
@@ -204,8 +206,8 @@ class FirestoreService {
 		}
 
 		return allDocs.compactMap { doc -> Transaction? in
-			guard let data = doc.data(),
-				  let requestId = data["requestId"] as? String,
+			let data = doc.data()
+			guard let requestId = data["requestId"] as? String,
 				  let requesterId = data["requesterId"] as? String,
 				  let fulfillerId = data["fulfillerId"] as? String,
 				  let itemPrice = data["itemPrice"] as? Double,
@@ -256,9 +258,9 @@ class FirestoreService {
 			.order(by: "createdAt", descending: false)
 			.getDocuments()
 
-		return snapshot.documents.compactMap { doc -> Request? in
-			guard let data = doc.data(),
-				  let transactionId = data["transactionId"] as? String,
+		return snapshot.documents.compactMap { doc -> Message? in
+			let data = doc.data()
+			guard let transactionId = data["transactionId"] as? String,
 				  let senderId = data["senderId"] as? String,
 				  let content = data["content"] as? String,
 				  let isRead = data["isRead"] as? Bool,
@@ -287,8 +289,8 @@ class FirestoreService {
 				guard let documents = snapshot?.documents else { return }
 
 				let messages = documents.compactMap { doc -> Message? in
-					guard let data = doc.data(),
-						  let transactionId = data["transactionId"] as? String,
+					let data = doc.data()
+					guard let transactionId = data["transactionId"] as? String,
 						  let senderId = data["senderId"] as? String,
 						  let content = data["content"] as? String,
 						  let isRead = data["isRead"] as? Bool,
