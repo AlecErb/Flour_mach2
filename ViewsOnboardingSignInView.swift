@@ -67,7 +67,19 @@ struct ViewsOnboardingSignInView: View {
 					do {
 						try await appState.signIn(email: email, password: password)
 					} catch {
-						errorMessage = error.localizedDescription
+						// Parse Firebase error and show friendly message
+						let errorString = error.localizedDescription.lowercased()
+						if errorString.contains("user not found") || errorString.contains("no user record") {
+							errorMessage = "Account not found. Please sign up first."
+						} else if errorString.contains("wrong password") || errorString.contains("invalid credential") {
+							errorMessage = "Incorrect password. Please try again."
+						} else if errorString.contains("malformed") || errorString.contains("invalid-email") {
+							errorMessage = "Invalid email format. Please check your email."
+						} else if errorString.contains("network") {
+							errorMessage = "Network error. Please check your connection."
+						} else {
+							errorMessage = "Sign in failed. Please check your credentials or sign up."
+						}
 					}
 					isLoading = false
 				}
@@ -87,6 +99,18 @@ struct ViewsOnboardingSignInView: View {
 			.tint(.green)
 			.disabled(!isValid || isLoading)
 			.padding(.horizontal, Constants.UI.largePadding)
+
+			HStack(spacing: 4) {
+				Text("Don't have an account?")
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+
+				Button("Sign Up") {
+					withAnimation { onboardingStep = 1 }
+				}
+				.font(.subheadline)
+				.fontWeight(.semibold)
+			}
 
 			Button("Back") {
 				withAnimation { onboardingStep = 0 }

@@ -122,7 +122,19 @@ struct ViewsOnboardingProfileSetupView: View {
 						phone: phone
 					)
 					if let error = appState.authError {
-						errorMessage = error
+						// Parse Firebase error and show friendly message
+						let errorString = error.lowercased()
+						if errorString.contains("email-already-in-use") || errorString.contains("already in use") {
+							errorMessage = "This email is already registered. Please sign in instead."
+						} else if errorString.contains("invalid-email") {
+							errorMessage = "Invalid email format. Please check your email."
+						} else if errorString.contains("weak-password") {
+							errorMessage = "Password is too weak. Please use at least 6 characters."
+						} else if errorString.contains("network") {
+							errorMessage = "Network error. Please check your connection."
+						} else {
+							errorMessage = error
+						}
 					}
 					isLoading = false
 				}
