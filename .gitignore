@@ -136,6 +136,8 @@ firebase-debug.log
 .firebase/
 .firebaserc
 functions/node_modules/
+dataconnect/
+src/
 
 # Node.js
 node_modules/
