@@ -17,7 +17,11 @@ struct User: Identifiable, Codable, Hashable {
     var createdAt: Date
     var rating: Double?
     var totalTransactions: Int
-    
+
+    // Stripe payment fields (for sellers)
+    var stripeAccountId: String?
+    var stripeOnboardingComplete: Bool?
+
     // Computed property for formatted rating
     var formattedRating: String {
         guard let rating = rating else { return "No rating" }
@@ -40,7 +44,9 @@ struct User: Identifiable, Codable, Hashable {
         schoolId: String,
         createdAt: Date = Date(),
         rating: Double? = nil,
-        totalTransactions: Int = 0
+        totalTransactions: Int = 0,
+        stripeAccountId: String? = nil,
+        stripeOnboardingComplete: Bool? = nil
     ) {
         self.id = id
         self.displayName = displayName
@@ -50,6 +56,8 @@ struct User: Identifiable, Codable, Hashable {
         self.createdAt = createdAt
         self.rating = rating
         self.totalTransactions = totalTransactions
+        self.stripeAccountId = stripeAccountId
+        self.stripeOnboardingComplete = stripeOnboardingComplete
     }
 }
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ViewsProfileView: View {
 	@Environment(AppState.self) private var appState
+	@State private var showingSellerOnboarding = false
 
 	private var user: User? { appState.currentUser }
 
@@ -77,6 +78,30 @@ struct ViewsProfileView: View {
 				.padding(.vertical, 4)
 			}
 
+			// Payments
+			Section("Payments") {
+				if user?.stripeOnboardingComplete == true {
+					HStack {
+						Label("Seller Payments", systemImage: "checkmark.circle.fill")
+							.foregroundStyle(.green)
+						Spacer()
+						Text("Active")
+							.font(.caption)
+							.foregroundStyle(.green)
+							.padding(.horizontal, 8)
+							.padding(.vertical, 4)
+							.background(.green.opacity(0.1))
+							.clipShape(Capsule())
+					}
+				} else {
+					Button {
+						showingSellerOnboarding = true
+					} label: {
+						Label("Set Up Seller Payments", systemImage: "dollarsign.circle")
+					}
+				}
+			}
+
 			// Navigation
 			Section {
 				NavigationLink {
@@ -102,6 +127,9 @@ struct ViewsProfileView: View {
 			}
 		}
 		.navigationTitle("Profile")
+		.sheet(isPresented: $showingSellerOnboarding) {
+			SellerOnboardingView()
+		}
 	}
 
 	private func statItem(value: String, label: String, icon: String, color: Color) -> some View {

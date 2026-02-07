@@ -18,6 +18,7 @@ class AppState {
 	var authError: String?
 
 	private let authService = AuthService()
+	private let stripeService = StripeService()
 
 	// MARK: - Data
 	var schools: [School] = MockData.schools
@@ -268,5 +269,80 @@ class AppState {
 			let bDate = b.1?.createdAt ?? b.0.createdAt
 			return aDate > bDate
 		}
+	}
+
+	// MARK: - Stripe Payment Methods
+
+	/// Set up seller account - creates Stripe Connected Account and returns onboarding URL
+	func setupSellerAccount() async throws -> URL {
+		guard let user = currentUser else {
+			throw StripeError.invalidResponse
+		}
+
+		let (accountId, onboardingURL) = try await stripeService.createConnectedAccount(email: user.email)
+
+		// Update user with Stripe account ID (in real app, save to Firestore)
+		if let idx = users.firstIndex(where: { $0.id == user.id }) {
+			users[idx].stripeAccountId = accountId
+			users[idx].stripeOnboardingComplete = false
+		}
+
+		return onboardingURL
+	}
+
+	/// Check if current user has completed Stripe onboarding
+	func checkSellerStatus() async throws -> Bool {
+		let isComplete = try await stripeService.checkAccountStatus()
+
+		// Update user (in real app, Firestore updates via Cloud Function)
+		if let user = currentUser,
+		   let idx = users.firstIndex(where: { $0.id == user.id }) {
+			users[idx].stripeOnboardingComplete = isComplete
+		}
+
+		return isComplete
+	}
+
+	/// Process payment for a transaction
+	/// Returns client secret for Stripe Payment Sheet
+	func createPayment(for transactionId: String) async throws -> String {
+		guard let txnIdx = transactions.firstIndex(where: { $0.id == transactionId }) else {
+			throw StripeError.invalidResponse
+		}
+
+		let transaction = transactions[txnIdx]
+
+		// Get seller's Stripe account ID
+		guard let seller = users.first(where: { $0.id == transaction.fulfillerId }),
+			  let sellerStripeId = seller.stripeAccountId,
+			  seller.stripeOnboardingComplete == true else {
+			throw StripeError.onboardingIncomplete
+		}
+
+		// Create payment intent
+		let clientSecret = try await stripeService.createPaymentIntent(
+			amount: transaction.totalAmount,
+			platformFee: transaction.platformFee,
+			sellerStripeAccountId: sellerStripeId,
+			transactionId: transaction.id
+		)
+
+		// Update transaction status to processing
+		transactions[txnIdx].paymentStatus = "processing"
+
+		return clientSecret
+	}
+
+	/// Mark payment as succeeded (called after Stripe confirms)
+	func markPaymentSucceeded(transactionId: String) {
+		guard let idx = transactions.firstIndex(where: { $0.id == transactionId }) else { return }
+		transactions[idx].paymentStatus = "succeeded"
+		transactions[idx].paidAt = Date()
+	}
+
+	/// Mark payment as failed
+	func markPaymentFailed(transactionId: String, error: String) {
+		guard let idx = transactions.firstIndex(where: { $0.id == transactionId }) else { return }
+		transactions[idx].paymentStatus = "failed"
 	}
 }

@@ -29,6 +29,10 @@ struct Transaction: Identifiable, Codable, Hashable {
     var fulfillerConfirmed: Bool
     let createdAt: Date
     var completedAt: Date?
+
+    // Payment tracking
+    var paymentStatus: String? // "processing", "succeeded", "failed"
+    var paidAt: Date?
     
     // Computed properties
     var isCompleted: Bool {
@@ -54,6 +58,10 @@ struct Transaction: Identifiable, Codable, Hashable {
     var formattedTotal: String {
         return String(format: "$%.2f", totalCharged)
     }
+
+    var totalAmount: Double {
+        return totalCharged
+    }
     
     init(
         id: String = UUID().uuidString,
@@ -66,24 +74,28 @@ struct Transaction: Identifiable, Codable, Hashable {
         requesterConfirmed: Bool = false,
         fulfillerConfirmed: Bool = false,
         createdAt: Date = Date(),
-        completedAt: Date? = nil
+        completedAt: Date? = nil,
+        paymentStatus: String? = nil,
+        paidAt: Date? = nil
     ) {
         self.id = id
         self.requestId = requestId
         self.requesterId = requesterId
         self.fulfillerId = fulfillerId
         self.itemPrice = itemPrice
-        
+
         // Calculate platform fee if not provided
         let calculatedFee = platformFee ?? Transaction.calculatePlatformFee(for: itemPrice)
         self.platformFee = calculatedFee
         self.totalCharged = itemPrice + calculatedFee
-        
+
         self.status = status
         self.requesterConfirmed = requesterConfirmed
         self.fulfillerConfirmed = fulfillerConfirmed
         self.createdAt = createdAt
         self.completedAt = completedAt
+        self.paymentStatus = paymentStatus
+        self.paidAt = paidAt
     }
 }
 

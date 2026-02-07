@@ -134,6 +134,14 @@ Temporary Items
 # Firebase
 firebase-debug.log
 .firebase/
+.firebaserc
+functions/node_modules/
+
+# Node.js
+node_modules/
+package.json
+package-lock.json
 
 # Business and legal documents
 BUSINESS_SETUP.md
+FIREBASE_SETUP.md

@@ -120,6 +120,21 @@ struct ViewsRequestDetailView: View {
 
 		VStack(spacing: 8) {
 			if current.status == .matched, let txn = transaction {
+				// Show pay button if requester hasn't paid yet
+				if isRequester && txn.paymentStatus != "succeeded" {
+					NavigationLink {
+						PaymentView(transaction: txn)
+					} label: {
+						Label("Pay Now", systemImage: "creditcard.fill")
+							.font(.headline)
+							.frame(maxWidth: .infinity)
+							.frame(height: Constants.UI.buttonHeight)
+					}
+					.buttonStyle(.borderedProminent)
+					.tint(.blue)
+				}
+
+				// Chat button (always available once matched)
 				NavigationLink(value: txn) {
 					Label("Open Chat", systemImage: "message.fill")
 						.font(.headline)
