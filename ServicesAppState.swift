@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseAuth
+import FirebaseAnalytics
 import Observation
 
 @Observable
@@ -71,6 +72,9 @@ class AppState {
 		guard let userId = currentUser?.id else { return }
 
 		do {
+			// Seed Firestore with mock data if it's empty
+			await seedFirestoreIfNeeded()
+
 			// Load requests
 			requests = try await firestoreService.loadRequests()
 
@@ -80,6 +84,49 @@ class AppState {
 			print("✅ Loaded \(requests.count) requests, \(transactions.count) transactions")
 		} catch {
 			print("❌ Error loading user data: \(error)")
+		}
+	}
+
+	/// Seed Firestore with mock data if database is empty
+	private func seedFirestoreIfNeeded() async {
+		do {
+			// Check if Firestore already has data
+			let existingRequests = try await firestoreService.loadRequests()
+			if !existingRequests.isEmpty {
+				print("✅ Firestore already has data, skipping seed")
+				return
+			}
+
+			print("🌱 Seeding Firestore with mock data...")
+
+			// Save all mock users
+			for user in MockData.users {
+				try? await firestoreService.saveUser(user)
+			}
+
+			// Save all mock requests
+			for request in MockData.requests {
+				try? await firestoreService.saveRequest(request)
+			}
+
+			// Save all mock offers
+			for offer in MockData.offers {
+				try? await firestoreService.saveOffer(offer)
+			}
+
+			// Save all mock transactions
+			for transaction in MockData.transactions {
+				try? await firestoreService.saveTransaction(transaction)
+			}
+
+			// Save all mock messages
+			for message in MockData.messages {
+				try? await firestoreService.saveMessage(message)
+			}
+
+			print("✅ Firestore seeded with \(MockData.requests.count) requests, \(MockData.users.count) users, \(MockData.offers.count) offers")
+		} catch {
+			print("❌ Error seeding Firestore: \(error)")
 		}
 	}
 
@@ -104,6 +151,14 @@ class AppState {
 
 			// Save to Firestore
 			try await firestoreService.saveUser(user)
+
+			// Track sign up event
+			Analytics.logEvent(AnalyticsEventSignUp, parameters: [
+				AnalyticsParameterMethod: "email"
+			])
+
+			// Seed Firestore and load data
+			await loadUserData()
 		} catch {
 			authError = error.localizedDescription
 		}
@@ -124,6 +179,11 @@ class AppState {
 				phone: "",
 				schoolId: ""
 			)
+
+			// Track sign in event
+			Analytics.logEvent(AnalyticsEventLogin, parameters: [
+				AnalyticsParameterMethod: "email"
+			])
 		} catch {
 			authError = error.localizedDescription
 			throw error
@@ -183,6 +243,13 @@ class AppState {
 		)
 		requests.insert(request, at: 0)
 
+		// Track request creation
+		Analytics.logEvent("request_created", parameters: [
+			"offer_price": offerPrice,
+			"urgency": urgency.rawValue,
+			"radius_meters": radiusMeters
+		])
+
 		// Save to Firestore
 		Task {
 			try? await firestoreService.saveRequest(request)
@@ -224,6 +291,11 @@ class AppState {
 		)
 		offers.append(offer)
 
+		// Track offer made
+		Analytics.logEvent("offer_made", parameters: [
+			"offer_amount": amount
+		])
+
 		if let idx = requests.firstIndex(where: { $0.id == requestId }) {
 			requests[idx].status = .negotiating
 
@@ -252,6 +324,11 @@ class AppState {
 			itemPrice: offer.amount
 		)
 		transactions.append(transaction)
+
+		// Track offer acceptance (creates transaction)
+		Analytics.logEvent("offer_accepted", parameters: [
+			"transaction_value": offer.amount
+		])
 
 		// Save to Firestore
 		Task {
@@ -291,6 +368,12 @@ class AppState {
 		transactions[idx].confirm(byUser: user.id)
 
 		if transactions[idx].bothConfirmed {
+			// Track transaction completion
+			Analytics.logEvent("transaction_completed", parameters: [
+				AnalyticsParameterValue: transactions[idx].itemPrice,
+				AnalyticsParameterCurrency: "USD"
+			])
+
 			if let reqIdx = requests.firstIndex(where: { $0.id == transactions[idx].requestId }) {
 				requests[reqIdx].status = .completed
 

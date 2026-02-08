@@ -191,6 +191,12 @@ enum MockData {
 		longitude: -111.8585
 	)
 
+	// Park Building / red brick buildings area
+	static let redBuildings = LocationCoordinate(
+		latitude: 40.7655,
+		longitude: -111.8470
+	)
+
 	// MARK: - Requests
 
 	static let iceRequest = Request(
@@ -696,7 +702,7 @@ enum MockData {
 		return messages.filter { $0.transactionId == transactionId }
 	}
 
-	static func requests(for userId: String) -> [Request] {
+	static func requestsForUser(_ userId: String) -> [Request] {
 		return requests.filter { $0.requesterId == userId }
 	}
 
