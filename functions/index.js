@@ -1,3 +1,6 @@
+// Load environment variables from .env file in development
+require('dotenv').config();
+
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {onRequest} = require('firebase-functions/v2/https');
 const {defineSecret} = require('firebase-functions/params');
@@ -7,6 +10,16 @@ admin.initializeApp();
 
 // Define Stripe secret as a Cloud Secret
 const stripeSecret = defineSecret('STRIPE_SECRET');
+
+// Helper to get Stripe key (supports both local .env and production secrets)
+function getStripeKey() {
+	// In emulator, use .env file
+	if (process.env.FUNCTIONS_EMULATOR) {
+		return process.env.STRIPE_SECRET;
+	}
+	// In production, use Cloud Secret
+	return stripeSecret.value();
+}
 
 /**
  * Create a Stripe Connected Account for a seller
@@ -19,7 +32,7 @@ exports.createConnectedAccount = onCall({secrets: [stripeSecret]}, async (reques
 	}
 
 	// Initialize Stripe with secret
-	const stripe = require('stripe')(stripeSecret.value());
+	const stripe = require('stripe')(getStripeKey());
 
 	const userId = request.auth.uid;
 	const {email} = request.data;
@@ -76,7 +89,7 @@ exports.checkAccountStatus = onCall({secrets: [stripeSecret]}, async (request) =
 	}
 
 	// Initialize Stripe with secret
-	const stripe = require('stripe')(stripeSecret.value());
+	const stripe = require('stripe')(getStripeKey());
 
 	const userId = request.auth.uid;
 
@@ -120,7 +133,7 @@ exports.createPaymentIntent = onCall({secrets: [stripeSecret]}, async (request) 
 	}
 
 	// Initialize Stripe with secret
-	const stripe = require('stripe')(stripeSecret.value());
+	const stripe = require('stripe')(getStripeKey());
 
 	const {
 		amount, // Total amount in dollars (e.g., 10.50)
@@ -182,7 +195,7 @@ exports.createPaymentIntent = onCall({secrets: [stripeSecret]}, async (request) 
  */
 exports.stripeWebhook = onRequest({secrets: [stripeSecret]}, async (req, res) => {
 	// Initialize Stripe with secret
-	const stripe = require('stripe')(stripeSecret.value());
+	const stripe = require('stripe')(getStripeKey());
 
 	// Verify webhook signature to ensure it's from Stripe
 	const sig = req.headers['stripe-signature'];

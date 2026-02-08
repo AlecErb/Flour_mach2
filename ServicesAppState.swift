@@ -101,11 +101,16 @@ class AppState {
 
 			print("🌱 Seeding Firestore with mock data...")
 
-			// Save current user as the mock current user
-			var updatedCurrentUser = MockData.currentUser
-			updatedCurrentUser.id = realUser.id
-			updatedCurrentUser.displayName = realUser.displayName
-			updatedCurrentUser.email = realUser.email
+			// Save current user with real ID
+			let updatedCurrentUser = User(
+				id: realUser.id,
+				displayName: realUser.displayName,
+				email: realUser.email,
+				phone: MockData.currentUser.phone,
+				schoolId: MockData.currentUser.schoolId,
+				rating: MockData.currentUser.rating,
+				totalTransactions: MockData.currentUser.totalTransactions
+			)
 			try? await firestoreService.saveUser(updatedCurrentUser)
 
 			// Save other mock users
@@ -114,41 +119,68 @@ class AppState {
 			}
 
 			// Save requests, replacing currentUser references with real user ID
-			for var request in MockData.requests {
-				if request.requesterId == MockData.currentUser.id {
-					request.requesterId = realUser.id
-				}
-				if request.fulfillerId == MockData.currentUser.id {
-					request.fulfillerId = realUser.id
-				}
-				try? await firestoreService.saveRequest(request)
+			for request in MockData.requests {
+				let updatedRequest = Request(
+					id: request.id,
+					requesterId: request.requesterId == MockData.currentUser.id ? realUser.id : request.requesterId,
+					itemDescription: request.itemDescription,
+					offerPrice: request.offerPrice,
+					urgency: request.urgency,
+					radiusMeters: request.radiusMeters,
+					location: request.location,
+					status: request.status,
+					fulfillerId: request.fulfillerId == MockData.currentUser.id ? realUser.id : request.fulfillerId,
+					createdAt: request.createdAt,
+					durationHours: request.durationHours
+				)
+				try? await firestoreService.saveRequest(updatedRequest)
 			}
 
 			// Save offers, replacing currentUser references
-			for var offer in MockData.offers {
-				if offer.userId == MockData.currentUser.id {
-					offer.userId = realUser.id
-				}
-				try? await firestoreService.saveOffer(offer)
+			for offer in MockData.offers {
+				let updatedOffer = Offer(
+					id: offer.id,
+					requestId: offer.requestId,
+					userId: offer.userId == MockData.currentUser.id ? realUser.id : offer.userId,
+					amount: offer.amount,
+					status: offer.status,
+					parentOfferId: offer.parentOfferId,
+					createdAt: offer.createdAt
+				)
+				try? await firestoreService.saveOffer(updatedOffer)
 			}
 
 			// Save transactions, replacing currentUser references
-			for var transaction in MockData.transactions {
-				if transaction.requesterId == MockData.currentUser.id {
-					transaction.requesterId = realUser.id
-				}
-				if transaction.fulfillerId == MockData.currentUser.id {
-					transaction.fulfillerId = realUser.id
-				}
-				try? await firestoreService.saveTransaction(transaction)
+			for transaction in MockData.transactions {
+				let updatedTransaction = Transaction(
+					id: transaction.id,
+					requestId: transaction.requestId,
+					requesterId: transaction.requesterId == MockData.currentUser.id ? realUser.id : transaction.requesterId,
+					fulfillerId: transaction.fulfillerId == MockData.currentUser.id ? realUser.id : transaction.fulfillerId,
+					itemPrice: transaction.itemPrice,
+					platformFee: transaction.platformFee,
+					status: transaction.status,
+					requesterConfirmed: transaction.requesterConfirmed,
+					fulfillerConfirmed: transaction.fulfillerConfirmed,
+					createdAt: transaction.createdAt,
+					completedAt: transaction.completedAt,
+					paymentStatus: transaction.paymentStatus,
+					paidAt: transaction.paidAt
+				)
+				try? await firestoreService.saveTransaction(updatedTransaction)
 			}
 
 			// Save messages, replacing currentUser references
-			for var message in MockData.messages {
-				if message.senderId == MockData.currentUser.id {
-					message.senderId = realUser.id
-				}
-				try? await firestoreService.saveMessage(message)
+			for message in MockData.messages {
+				let updatedMessage = Message(
+					id: message.id,
+					transactionId: message.transactionId,
+					senderId: message.senderId == MockData.currentUser.id ? realUser.id : message.senderId,
+					content: message.content,
+					createdAt: message.createdAt,
+					isRead: message.isRead
+				)
+				try? await firestoreService.saveMessage(updatedMessage)
 			}
 
 			print("✅ Firestore seeded with \(MockData.requests.count) requests, \(MockData.users.count) users, \(MockData.offers.count) offers")
