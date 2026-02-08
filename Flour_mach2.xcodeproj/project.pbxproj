@@ -49,6 +49,7 @@
 		7043AA492F37FDBA001B37CE /* ViewsPaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7043AA472F37FDBA001B37CE /* ViewsPaymentView.swift */; };
 		7043AA4A2F37FDBA001B37CE /* ViewsSellerOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7043AA482F37FDBA001B37CE /* ViewsSellerOnboardingView.swift */; };
 		7043AA4B2F37FDBA001B37CE /* ServicesStripeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7043AA462F37FDBA001B37CE /* ServicesStripeService.swift */; };
+		7043AA4D2F380431001B37CE /* ServicesFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7043AA4C2F380431001B37CE /* ServicesFirestoreService.swift */; };
 		70FE7E4A2F35955800045277 /* CLAUDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 70FE7E492F35955800045277 /* CLAUDE.md */; };
 		70FE7E4C2F35965E00045277 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 70FE7E4B2F35965E00045277 /* README.md */; };
 		70FE7E4E2F35965E00045277 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 70FE7E4D2F35965E00045277 /* .gitignore */; };
@@ -108,6 +109,7 @@
 		7043AA462F37FDBA001B37CE /* ServicesStripeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStripeService.swift; sourceTree = "<group>"; };
 		7043AA472F37FDBA001B37CE /* ViewsPaymentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewsPaymentView.swift; sourceTree = "<group>"; };
 		7043AA482F37FDBA001B37CE /* ViewsSellerOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewsSellerOnboardingView.swift; sourceTree = "<group>"; };
+		7043AA4C2F380431001B37CE /* ServicesFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFirestoreService.swift; sourceTree = "<group>"; };
 		70FE7E352F35938700045277 /* Flour_mach2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flour_mach2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		70FE7E492F35955800045277 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		70FE7E4B2F35965E00045277 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -193,6 +195,7 @@
 		70FE7E2C2F35938700045277 = {
 			isa = PBXGroup;
 			children = (
+				7043AA4C2F380431001B37CE /* ServicesFirestoreService.swift */,
 				7043AA462F37FDBA001B37CE /* ServicesStripeService.swift */,
 				7043AA472F37FDBA001B37CE /* ViewsPaymentView.swift */,
 				7043AA482F37FDBA001B37CE /* ViewsSellerOnboardingView.swift */,
@@ -389,6 +392,7 @@
 				C100000000000005000000A1 /* ViewsOnboardingWelcomeView.swift in Sources */,
 				C100000000000007000000A1 /* ViewsOnboardingEmailView.swift in Sources */,
 				C100000000000009000000A1 /* ViewsOnboardingProfileSetupView.swift in Sources */,
+				7043AA4D2F380431001B37CE /* ServicesFirestoreService.swift in Sources */,
 				C10000000000000B000000A1 /* ViewsRootView.swift in Sources */,
 				C10000000000000D000000A1 /* ViewsMainTabView.swift in Sources */,
 				C10000000000000F000000A1 /* ViewsMapView.swift in Sources */,
