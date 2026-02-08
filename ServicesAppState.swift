@@ -192,6 +192,21 @@ class AppState {
 	func cancelRequest(_ requestId: String) {
 		guard let idx = requests.firstIndex(where: { $0.id == requestId }) else { return }
 		requests[idx].status = .cancelled
+
+		// Save to Firestore
+		Task {
+			try? await firestoreService.saveRequest(requests[idx])
+		}
+	}
+
+	func deleteRequest(_ requestId: String) {
+		// Remove from local array
+		requests.removeAll { $0.id == requestId }
+
+		// Delete from Firestore
+		Task {
+			try? await firestoreService.deleteRequest(requestId)
+		}
 	}
 
 	// MARK: - Offer Methods

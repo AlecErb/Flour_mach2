@@ -15,6 +15,8 @@ struct ViewsRequestDetailView: View {
 
 	@State private var showOfferSheet = false
 	@State private var showNegotiationHistory = false
+	@State private var showDeleteConfirmation = false
+	@Environment(\.dismiss) private var dismiss
 
 	private var isRequester: Bool {
 		request.requesterId == appState.currentUser?.id
@@ -98,6 +100,26 @@ struct ViewsRequestDetailView: View {
 		}
 		.navigationTitle("Request Details")
 		.navigationBarTitleDisplayMode(.inline)
+		.toolbar {
+			if isRequester && latestRequest.isActive {
+				ToolbarItem(placement: .topBarTrailing) {
+					Button(role: .destructive) {
+						showDeleteConfirmation = true
+					} label: {
+						Image(systemName: "trash")
+					}
+				}
+			}
+		}
+		.confirmationDialog("Delete this request?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+			Button("Delete Request", role: .destructive) {
+				appState.deleteRequest(request.id)
+				dismiss()
+			}
+			Button("Cancel", role: .cancel) {}
+		} message: {
+			Text("This will permanently delete your request. This action cannot be undone.")
+		}
 		.safeAreaInset(edge: .bottom) {
 			actionButtons
 		}

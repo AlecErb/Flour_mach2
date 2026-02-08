@@ -76,6 +76,10 @@ class FirestoreService {
 		try await db.collection("requests").document(request.id).setData(data, merge: true)
 	}
 
+	func deleteRequest(_ requestId: String) async throws {
+		try await db.collection("requests").document(requestId).delete()
+	}
+
 	func loadRequests() async throws -> [Request] {
 		let snapshot = try await db.collection("requests")
 			.order(by: "createdAt", descending: true)
