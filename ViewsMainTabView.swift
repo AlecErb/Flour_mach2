@@ -11,6 +11,7 @@ struct ViewsMainTabView: View {
 	@Environment(AppState.self) private var appState
 	@State private var selectedTab = 0
 	@State private var showCreateRequest = false
+	@State private var requestToZoomTo: Request?
 
 	var body: some View {
 		TabView(selection: $selectedTab) {
@@ -22,7 +23,7 @@ struct ViewsMainTabView: View {
 
 			Tab("Map", systemImage: "map", value: 1) {
 				NavigationStack {
-					ViewsMapView()
+					ViewsMapView(requestToZoomTo: $requestToZoomTo)
 				}
 			}
 
@@ -52,7 +53,11 @@ struct ViewsMainTabView: View {
 		}
 		.sheet(isPresented: $showCreateRequest) {
 			NavigationStack {
-				ViewsCreateRequestView()
+				ViewsCreateRequestView { newRequest in
+					// Switch to map tab and zoom to new request
+					requestToZoomTo = newRequest
+					selectedTab = 1
+				}
 			}
 		}
 	}

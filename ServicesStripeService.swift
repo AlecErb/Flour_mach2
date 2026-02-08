@@ -9,7 +9,15 @@ class StripeService {
 	var errorMessage: String?
 
 	private var functions: Functions {
-		Functions.functions()
+		let functions = Functions.functions()
+
+		// Use local emulator in debug builds
+		// Start emulator with: firebase emulators:start
+		#if DEBUG
+		functions.useEmulator(withHost: "localhost", port: 5001)
+		#endif
+
+		return functions
 	}
 
 	/// Create a Stripe Connected Account for a seller

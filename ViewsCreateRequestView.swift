@@ -12,6 +12,8 @@ struct ViewsCreateRequestView: View {
 	@Environment(LocationService.self) private var locationService
 	@Environment(\.dismiss) private var dismiss
 
+	var onRequestCreated: ((Request) -> Void)?
+
 	@State private var itemDescription = ""
 	@State private var offerPrice = 10.0
 	@State private var urgency: Urgency = .oneHour
@@ -109,7 +111,7 @@ struct ViewsCreateRequestView: View {
 			}
 			ToolbarItem(placement: .confirmationAction) {
 				Button("Post") {
-					appState.createRequest(
+					let newRequest = appState.createRequest(
 						itemDescription: itemDescription.trimmingCharacters(in: .whitespaces),
 						offerPrice: offerPrice,
 						urgency: urgency,
@@ -118,6 +120,7 @@ struct ViewsCreateRequestView: View {
 						durationHours: durationHours
 					)
 					dismiss()
+					onRequestCreated?(newRequest)
 				}
 				.disabled(!isValid)
 				.fontWeight(.semibold)

@@ -12,6 +12,8 @@ struct ViewsMapView: View {
 	@Environment(AppState.self) private var appState
 	@Environment(LocationService.self) private var locationService
 
+	@Binding var requestToZoomTo: Request?
+
 	@State private var selectedRequest: Request?
 	@State private var cameraPosition: MapCameraPosition = .automatic
 
@@ -58,6 +60,23 @@ struct ViewsMapView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.onAppear {
 			locationService.requestPermission()
+		}
+		.onChange(of: requestToZoomTo) { oldValue, newValue in
+			if let request = newValue {
+				// Zoom to the new request with animation
+				withAnimation(.easeInOut(duration: 0.5)) {
+					cameraPosition = .region(
+						MKCoordinateRegion(
+							center: request.location.clLocationCoordinate,
+							span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+						)
+					)
+				}
+				// Clear the binding so it can be triggered again
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+					requestToZoomTo = nil
+				}
+			}
 		}
 		.sheet(item: $selectedRequest) { request in
 			NavigationStack {

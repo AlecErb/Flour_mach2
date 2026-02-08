@@ -89,6 +89,8 @@ class AppState {
 
 	/// Seed Firestore with mock data if database is empty
 	private func seedFirestoreIfNeeded() async {
+		guard let realUser = currentUser else { return }
+
 		do {
 			// Check if Firestore already has data
 			let existingRequests = try await firestoreService.loadRequests()
@@ -99,28 +101,53 @@ class AppState {
 
 			print("🌱 Seeding Firestore with mock data...")
 
-			// Save all mock users
-			for user in MockData.users {
+			// Save current user as the mock current user
+			var updatedCurrentUser = MockData.currentUser
+			updatedCurrentUser.id = realUser.id
+			updatedCurrentUser.displayName = realUser.displayName
+			updatedCurrentUser.email = realUser.email
+			try? await firestoreService.saveUser(updatedCurrentUser)
+
+			// Save other mock users
+			for user in MockData.users where user.id != MockData.currentUser.id {
 				try? await firestoreService.saveUser(user)
 			}
 
-			// Save all mock requests
-			for request in MockData.requests {
+			// Save requests, replacing currentUser references with real user ID
+			for var request in MockData.requests {
+				if request.requesterId == MockData.currentUser.id {
+					request.requesterId = realUser.id
+				}
+				if request.fulfillerId == MockData.currentUser.id {
+					request.fulfillerId = realUser.id
+				}
 				try? await firestoreService.saveRequest(request)
 			}
 
-			// Save all mock offers
-			for offer in MockData.offers {
+			// Save offers, replacing currentUser references
+			for var offer in MockData.offers {
+				if offer.userId == MockData.currentUser.id {
+					offer.userId = realUser.id
+				}
 				try? await firestoreService.saveOffer(offer)
 			}
 
-			// Save all mock transactions
-			for transaction in MockData.transactions {
+			// Save transactions, replacing currentUser references
+			for var transaction in MockData.transactions {
+				if transaction.requesterId == MockData.currentUser.id {
+					transaction.requesterId = realUser.id
+				}
+				if transaction.fulfillerId == MockData.currentUser.id {
+					transaction.fulfillerId = realUser.id
+				}
 				try? await firestoreService.saveTransaction(transaction)
 			}
 
-			// Save all mock messages
-			for message in MockData.messages {
+			// Save messages, replacing currentUser references
+			for var message in MockData.messages {
+				if message.senderId == MockData.currentUser.id {
+					message.senderId = realUser.id
+				}
 				try? await firestoreService.saveMessage(message)
 			}
 
@@ -223,6 +250,7 @@ class AppState {
 		requests.filter { $0.requesterId == userId }
 	}
 
+	@discardableResult
 	func createRequest(
 		itemDescription: String,
 		offerPrice: Double,
@@ -230,8 +258,19 @@ class AppState {
 		radiusMeters: Double,
 		location: LocationCoordinate,
 		durationHours: Double = Constants.Request.defaultDurationHours
-	) {
-		guard let user = currentUser else { return }
+	) -> Request {
+		guard let user = currentUser else {
+			// Return a placeholder if no user (shouldn't happen)
+			return Request(
+				requesterId: "",
+				itemDescription: itemDescription,
+				offerPrice: offerPrice,
+				urgency: urgency,
+				radiusMeters: radiusMeters,
+				location: location,
+				durationHours: durationHours
+			)
+		}
 		let request = Request(
 			requesterId: user.id,
 			itemDescription: itemDescription,
@@ -254,6 +293,8 @@ class AppState {
 		Task {
 			try? await firestoreService.saveRequest(request)
 		}
+
+		return request
 	}
 
 	func cancelRequest(_ requestId: String) {
