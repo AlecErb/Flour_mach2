@@ -349,6 +349,182 @@ enum MockData {
 		status: .open
 	)
 
+	static let coffeeRequest = Request(
+		id: "request_15",
+		requesterId: user6.id,
+		itemDescription: "Coffee from anywhere — pulling an all-nighter",
+		offerPrice: 8.00,
+		urgency: .thirtyMinutes,
+		radiusMeters: 1000,
+		location: nearLibrary,
+		status: .open
+	)
+
+	static let notesRequest = Request(
+		id: "request_16",
+		requesterId: user3.id,
+		itemDescription: "Bio 1610 lecture notes from yesterday",
+		offerPrice: 10.00,
+		urgency: .oneHour,
+		radiusMeters: 800,
+		location: campusCenter,
+		status: .open
+	)
+
+	static let calculatorRequest = Request(
+		id: "request_17",
+		requesterId: user8.id,
+		itemDescription: "Scientific calculator for exam tomorrow",
+		offerPrice: 15.00,
+		urgency: .asap,
+		radiusMeters: 600,
+		location: nearDorms,
+		status: .open
+	)
+
+	static let bikeRequest = Request(
+		id: "request_18",
+		requesterId: user2.id,
+		itemDescription: "Bike pump — flat tire",
+		offerPrice: 5.00,
+		urgency: .flexible,
+		radiusMeters: 1200,
+		location: redBuildings,
+		status: .open
+	)
+
+	static let textbookRequest = Request(
+		id: "request_19",
+		requesterId: user5.id,
+		itemDescription: "Chemistry textbook to borrow for the weekend",
+		offerPrice: 20.00,
+		urgency: .flexible,
+		radiusMeters: 1000,
+		location: nearLibrary,
+		status: .open
+	)
+
+	static let mascaraRequest = Request(
+		id: "request_20",
+		requesterId: user7.id,
+		itemDescription: "Black mascara — have a date in 30 min",
+		offerPrice: 8.00,
+		urgency: .asap,
+		radiusMeters: 500,
+		location: ninthAndNinth,
+		status: .open
+	)
+
+	static let tapeRequest = Request(
+		id: "request_21",
+		requesterId: user4.id,
+		itemDescription: "Packing tape for shipping a box",
+		offerPrice: 4.00,
+		urgency: .oneHour,
+		radiusMeters: 800,
+		location: nearKingsbury,
+		status: .open
+	)
+
+	static let penRequest = Request(
+		id: "request_22",
+		requesterId: user6.id,
+		itemDescription: "Black pen — mine died during exam",
+		offerPrice: 2.00,
+		urgency: .asap,
+		radiusMeters: 300,
+		location: lassonde,
+		status: .open
+	)
+
+	static let laundryRequest = Request(
+		id: "request_23",
+		requesterId: user8.id,
+		itemDescription: "Laundry detergent pods (just need a few)",
+		offerPrice: 5.00,
+		urgency: .flexible,
+		radiusMeters: 600,
+		location: nearDorms,
+		status: .open
+	)
+
+	static let usbRequest = Request(
+		id: "request_24",
+		requesterId: user3.id,
+		itemDescription: "USB-A to USB-C adapter",
+		offerPrice: 7.00,
+		urgency: .thirtyMinutes,
+		radiusMeters: 700,
+		location: campusCenter,
+		status: .open
+	)
+
+	static let energyDrinkRequest = Request(
+		id: "request_25",
+		requesterId: user2.id,
+		itemDescription: "Energy drink (any brand) — dead tired",
+		offerPrice: 5.00,
+		urgency: .asap,
+		radiusMeters: 900,
+		location: nearLibrary,
+		status: .open
+	)
+
+	static let hairTieRequest = Request(
+		id: "request_26",
+		requesterId: user5.id,
+		itemDescription: "Hair tie or scrunchie for workout",
+		offerPrice: 2.00,
+		urgency: .thirtyMinutes,
+		radiusMeters: 500,
+		location: redBuildings,
+		status: .open
+	)
+
+	static let printingRequest = Request(
+		id: "request_27",
+		requesterId: user7.id,
+		itemDescription: "Print 5 pages — printer's broken",
+		offerPrice: 4.00,
+		urgency: .oneHour,
+		radiusMeters: 800,
+		location: nearLibrary,
+		status: .open
+	)
+
+	static let quartersRequest = Request(
+		id: "request_28",
+		requesterId: user4.id,
+		itemDescription: "$10 in quarters for laundry",
+		offerPrice: 11.00,
+		urgency: .flexible,
+		radiusMeters: 1000,
+		location: nearDorms,
+		status: .open
+	)
+
+	static let gumRequest = Request(
+		id: "request_29",
+		requesterId: user6.id,
+		itemDescription: "Gum (any flavor) — need fresh breath",
+		offerPrice: 3.00,
+		urgency: .thirtyMinutes,
+		radiusMeters: 400,
+		location: ninthAndNinth,
+		status: .open
+	)
+
+	static let napkinsRequest = Request(
+		id: "request_30",
+		requesterId: user8.id,
+		itemDescription: "Paper napkins or tissues — spilled coffee",
+		offerPrice: 2.00,
+		urgency: .asap,
+		radiusMeters: 300,
+		location: campusCenter,
+		status: .open
+	)
+
 	static let requests = [
 		iceRequest,
 		chargerRequest,
@@ -363,7 +539,23 @@ enum MockData {
 		umbrellaRequest,
 		snacksRequest,
 		screwdriverRequest,
-		bandaidsRequest
+		bandaidsRequest,
+		coffeeRequest,
+		notesRequest,
+		calculatorRequest,
+		bikeRequest,
+		textbookRequest,
+		mascaraRequest,
+		tapeRequest,
+		penRequest,
+		laundryRequest,
+		usbRequest,
+		energyDrinkRequest,
+		hairTieRequest,
+		printingRequest,
+		quartersRequest,
+		gumRequest,
+		napkinsRequest
 	]
 
 	static let activeRequests = requests.filter { $0.isActive }
